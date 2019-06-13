@@ -1,11 +1,15 @@
 package entity;
 
+import app.MyApplication;
 import model.AccountModel;
+import model.TransactionModel;
+import entity.Transaction;
 
 import java.util.Calendar;
 
 public class Account {
-    private static final AccountModel model = new AccountModel();
+    private static final AccountModel ACCOUNT_MODEL = new AccountModel();
+    private static final TransactionModel TRANSACTION_MODEL = new TransactionModel();
     private long id;
     private String username;
     private String password;
@@ -37,7 +41,7 @@ public class Account {
         this.gender = Gender.findByCode(gender).getGender();
         this.createdAt = now;
         this.updatedAt = now;
-        this.stauts = Status.INACTIVE.getStatus();
+        this.stauts = Status.ACTIVE.getStatus();
     }
 
     public Account(String username, String password, int stauts) {
@@ -60,6 +64,11 @@ public class Account {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.stauts = stauts;
+    }
+
+    public Account(double balance, String fullName) {
+        this.balance = balance;
+        this.fullName = fullName;
     }
 
     public enum Status{
@@ -107,6 +116,39 @@ public class Account {
         }
     }
 
+    public double deposit(double balance,String content){
+        if (balance < 0) return 0;
+        double old_balance =  MyApplication.currentLogin.getBalance();
+        Transaction transaction = new Transaction(Transaction.TransactionType.DEPOSIT.getType(), balance, content, MyApplication.currentLogin.getAccountNumber(), MyApplication.currentLogin.getAccountNumber());
+        if(!transaction.insert()){
+            return 0;
+        };
+        System.out.println("Luu transaction thanh cong!");
+        return ACCOUNT_MODEL.updateBalanceByAccountId(old_balance + balance, this.id) ? old_balance + balance : 0;
+    }
+
+    public double withdraw(double balance, String content){
+        if (balance < 0) return 0;
+        double old_balance =  MyApplication.currentLogin.getBalance();
+        double newBalance = old_balance - balance;
+        if (newBalance <= 50000){
+            return 0;
+        }
+
+        Transaction transaction = new Transaction(Transaction.TransactionType.WITHDRAW.getType(), balance, content, MyApplication.currentLogin.getAccountNumber(), MyApplication.currentLogin.getAccountNumber());
+        if(!transaction.insert()){
+            return 0;
+        };
+        System.out.println("Luu transaction thanh cong!");
+
+        if (ACCOUNT_MODEL.updateBalanceByAccountId(newBalance, this.id)){
+            MyApplication.currentLogin = ACCOUNT_MODEL.findByUsernameAndStatus(MyApplication.currentLogin.getUsername(), Status.ACTIVE.getStatus());
+            return newBalance;
+        }
+
+        return 0;
+    }
+
     public void setGender(Gender gender){
         if (gender == null) gender = Gender.Other;
         this.stauts = gender.getGender();
@@ -114,12 +156,17 @@ public class Account {
 
 
     public boolean checkLogin(){
-        Account a = model.findByUsernameAndStatus(this.username, Status.findByType(this.stauts));
+        Account a = ACCOUNT_MODEL.findByUsernameAndStatus(this.username, Status.findByType(this.stauts).getStatus());
+        if (a == null) {
+            System.out.println("null r");
+            return false;
+        };
+        MyApplication.currentLogin = a;
         return this.username.equals(a.getUsername()) && this.password.equals(a.getPassword());
     }
 
     public boolean register(){
-        return model.insertAccount(this);
+        return ACCOUNT_MODEL.insertAccount(this);
     }
 
     public long getId() {
@@ -224,5 +271,24 @@ public class Account {
 
     public void setStauts(int stauts) {
         this.stauts = stauts;
+    }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", accountNumber=" + accountNumber +
+                ", identityCard='" + identityCard + '\'' +
+                ", balance=" + balance +
+                ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
+                ", fullName='" + fullName + '\'' +
+                ", gender=" + gender +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", stauts=" + stauts +
+                '}';
     }
 }

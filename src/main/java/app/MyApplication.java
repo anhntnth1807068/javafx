@@ -1,5 +1,6 @@
 package app;
 
+import entity.Account;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -15,14 +16,15 @@ import java.util.HashMap;
 public class MyApplication extends Application {
     private static final int APP_WIDTH = 600;
     private static final int APP_HEIGHT = 800;
+    public static Account currentLogin = null;
     private MyApplication application;
     private Stage main_stage;
     private Scene main_scene;
-    private DepositView depositView;
-    private WithDrawView withDrawView;
+    public DepositView depositView;
+    public WithDrawView withDrawView;
     private TransferView transferView;
 
-    private MenuView menuView;
+    public MenuView menuView;
     private RegisterView registerView;
     private LoginView loginView;
     private AnchorPane rootPane;
@@ -32,12 +34,10 @@ public class MyApplication extends Application {
         this.application = this;
         this.main_stage = stage;
         this.rootPane = new AnchorPane();
-        this.rootPane.setPadding(new Insets(20));
-        this.depositView = new DepositView(this.application);
+        this.rootPane.setPadding(new Insets(30));
         this.loginView = new LoginView(this.application);
-        this.withDrawView = new WithDrawView(this.application);
         this.transferView = new TransferView(this.application);
-        this.menuView = new MenuView(this.application);
+
         this.registerView = new RegisterView(this.application);
 
         // Màn hình sẽ bắt đầu từ thằng login.
